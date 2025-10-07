@@ -1,0 +1,24 @@
+name: Update Data Core IA
+
+on:
+  schedule:
+    # Toutes les 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Permet de déclencher manuellement depuis GitHub
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚀 Déclenchement de la mise à jour du Data Core IA
+        run: |
+          echo "Déclenchement de la mise à jour du Data Core IA..."
+
+          response=$(curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.WEBHOOK_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -s \
+            https://macro-pulse-a4a78c96.base44.app/api/apps/68c96457d9c56fe1a4a78c96/functions/webhookUpdateGlobalData)
+
+          echo "Réponse :"
+          echo "$response"
