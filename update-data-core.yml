@@ -1,0 +1,22 @@
+name: Update Data Core IA
+
+on:
+  schedule:
+    # toutes les 10 minutes
+    - cron: "*/10 * * * *"
+  workflow_dispatch: # permet de le lancer manuellement aussi
+
+jobs:
+  update-data-core:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Call Base44 ingestGlobalData function
+        run: |
+          echo "🚀 Running MacroPulse Data Core update..."
+          curl -X POST "https://macro-pulse-a4a78c96.base44.app/api/apps/68c96457d9c56fe1a4a78c96/functions/ingestGlobalData" \
+          -H "Content-Type: application/json" \
+          -d '{}'
