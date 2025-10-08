@@ -2,23 +2,27 @@ name: Update Data Core IA
 
 on:
   schedule:
-    # Toutes les 10 minutes
-    - cron: '*/10 * * * *'
-  workflow_dispatch: # Permet de déclencher manuellement depuis GitHub
+    - cron: "*/10 * * * *"  # toutes les 10 minutes
+  workflow_dispatch:
 
 jobs:
-  update:
+  update-data-core:
     runs-on: ubuntu-latest
+
     steps:
-      - name: 🚀 Déclenchement de la mise à jour du Data Core IA
-        run: |
-          echo "Déclenchement de la mise à jour du Data Core IA..."
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-          response=$(curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.WEBHOOK_SECRET }}" \
-            -H "Content-Type: application/json" \
-            -s \
-            https://macro-pulse-a4a78c96.base44.app/api/apps/68c96457d9c56fe1a4a78c96/functions/webhookUpdateGlobalData)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-          echo "Réponse :"
-          echo "$response"
+      - name: Install dependencies
+        run: npm install node-fetch@3
+
+      - name: Run AI Fetch Script
+        run: node scripts/fetch-data.mjs
+        env:
+          INGEST_URL: ${{ secrets.INGEST_URL }}
+          BASE44_APP_ID: "68c96457d9c56fe1a4a78c96"
