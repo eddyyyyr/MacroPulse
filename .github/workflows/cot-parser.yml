@@ -19,7 +19,6 @@ jobs:
 
       - name: Run COT parser
         run: |
-          npm install
           node scripts/parseCot.js
 
       - name: Commit updated COT data
