@@ -1,13 +1,12 @@
 name: Parse COT Data
 
 on:
-  schedule:
-    - cron: '0 4 * * 6'  # Samedi 04:00 UTC (06:00 Paris)
   workflow_dispatch:
 
 jobs:
   parse:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -15,16 +14,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: 20
 
       - name: Run COT parser
-        run: |
-          node scripts/parseCot.js
+        run: node fetch-cot-data.mjs
 
       - name: Commit updated COT data
         run: |
-          git config --global user.name 'MacroPulse Bot'
-          git config --global user.email 'bot@macropulse.ai'
-          git add data/cot/*.json
-          git commit -m "🔁 Weekly update COT data"
+          git config --global user.name "MacroPulse Bot"
+          git config --global user.email "bot@macropulse.io"
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/edyyyyr/MacroPulse.git
+          git add .
+          git commit -m "Weekly update COT data" || echo "Nothing to commit"
           git push
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
