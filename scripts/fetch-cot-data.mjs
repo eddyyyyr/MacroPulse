@@ -14,7 +14,7 @@ const rawData = JSON.parse(fs.readFileSync(rawPath, "utf-8"));
 
 // 🔐 Clé secrète (depuis GitHub Secrets)
 const BASE44_SECRET = process.env.BASE44_SECRET;
-const BASE44_ENDPOINT = "https://your-app.base44.com/functions/parseCOT";
+const BASE44_ENDPOINT = "https://macropulse.base44.app/functions/parseCOT";
 
 // 📤 Envoi à Base44
 const response = await fetch(BASE44_ENDPOINT, {
