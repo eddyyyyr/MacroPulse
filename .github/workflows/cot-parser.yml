@@ -1,7 +1,9 @@
 name: Parse COT Data
 
 on:
-  workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * 6'  # Tous les samedis à 7h (heure de Paris = UTC+2)
+  workflow_dispatch:      # Laisse-le pour pouvoir déclencher manuellement aussi
 
 jobs:
   parse:
