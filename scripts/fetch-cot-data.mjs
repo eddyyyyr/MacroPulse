@@ -1,24 +1,51 @@
-// scripts/fetch-cot-data.mjs
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import fetch from "node-fetch";
 
-import { writeFileSync, mkdirSync } from 'fs';
-import { join } from 'path';
-import pkg from './parseCot.js';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const { parseCot } = pkg;
+// 📅 1. Génère la date d’aujourd’hui (ex: 2025-10-24)
+const today = new Date().toISOString().split("T")[0];
+const savePath = path.join(__dirname, `../data/cot-summary/${today}.json`);
 
-// Exécute la fonction
-const output = parseCot();
+// 🛰️ 2. Récupère les données COT comme avant
+const cotData = {
+  // Tu mets ici ta logique habituelle pour parser les fichiers HTML CFTC
+  // Exemple factice :
+  report_date: today,
+  data: [
+    { symbol: "EURUSD", long: 35000, short: 29000 },
+    { symbol: "XAUUSD", long: 42000, short: 17000 },
+  ],
+};
 
-// Crée le dossier s'il n'existe pas
-const dir = 'data/cot';
-mkdirSync(dir, { recursive: true });
+// 💾 3. Sauvegarde localement
+fs.writeFileSync(savePath, JSON.stringify(cotData, null, 2));
+console.log(`✅ Données COT sauvegardées dans ${savePath}`);
 
-// Génère un nom de fichier avec la date du jour
-const now = new Date();
-const dateStr = now.toISOString().split('T')[0]; // yyyy-mm-dd
-const filePath = join(dir, `${dateStr}.json`);
+// 🔁 4. Envoie à Base44 (si clé dispo)
+const webhookUrl = "https://your-app.base44.com/functions/parseCOT";
+const webhookSecret = process.env.BASE44_SECRET;
 
-// Sauvegarde le résultat dans un fichier JSON
-writeFileSync(filePath, JSON.stringify(output, null, 2));
+if (!webhookSecret) {
+  console.error("❌ Aucun secret fourni pour BASE44_SECRET !");
+  process.exit(1);
+}
 
-console.log(`✅ Fichier généré : ${filePath}`);
+const response = await fetch(webhookUrl, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${webhookSecret}`,
+  },
+  body: JSON.stringify(cotData),
+});
+
+if (!response.ok) {
+  console.error(`❌ Erreur webhook Base44 : ${response.status} - ${await response.text()}`);
+  process.exit(1);
+}
+
+console.log("✅ Données envoyées à Base44 avec succès !");
