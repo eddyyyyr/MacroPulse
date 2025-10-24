@@ -1,51 +1,37 @@
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import fetch from "node-fetch";
+import { fileURLToPath } from "url";
 
+// Déduire __dirname (car on est en module ESM)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 📅 1. Génère la date d’aujourd’hui (ex: 2025-10-24)
-const today = new Date().toISOString().split("T")[0];
-const savePath = path.join(__dirname, `../data/cot-summary/${today}.json`);
+// 📦 Lire le fichier JSON brut généré manuellement chaque vendredi soir
+const today = new Date().toISOString().slice(0, 10); // ex: "2025-10-24"
+const rawPath = path.join(__dirname, `../data/cot/${today}.json`);
+const rawData = JSON.parse(fs.readFileSync(rawPath, "utf-8"));
 
-// 🛰️ 2. Récupère les données COT comme avant
-const cotData = {
-  // Tu mets ici ta logique habituelle pour parser les fichiers HTML CFTC
-  // Exemple factice :
-  report_date: today,
-  data: [
-    { symbol: "EURUSD", long: 35000, short: 29000 },
-    { symbol: "XAUUSD", long: 42000, short: 17000 },
-  ],
-};
+// 🔐 Clé secrète (depuis GitHub Secrets)
+const BASE44_SECRET = process.env.BASE44_SECRET;
+const BASE44_ENDPOINT = "https://your-app.base44.com/functions/parseCOT";
 
-// 💾 3. Sauvegarde localement
-fs.writeFileSync(savePath, JSON.stringify(cotData, null, 2));
-console.log(`✅ Données COT sauvegardées dans ${savePath}`);
-
-// 🔁 4. Envoie à Base44 (si clé dispo)
-const webhookUrl = "https://your-app.base44.com/functions/parseCOT";
-const webhookSecret = process.env.BASE44_SECRET;
-
-if (!webhookSecret) {
-  console.error("❌ Aucun secret fourni pour BASE44_SECRET !");
-  process.exit(1);
-}
-
-const response = await fetch(webhookUrl, {
+// 📤 Envoi à Base44
+const response = await fetch(BASE44_ENDPOINT, {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${webhookSecret}`,
+    Authorization: `Bearer ${BASE44_SECRET}`,
   },
-  body: JSON.stringify(cotData),
+  body: JSON.stringify({
+    report_date: today,
+    data: rawData,
+  }),
 });
 
-if (!response.ok) {
-  console.error(`❌ Erreur webhook Base44 : ${response.status} - ${await response.text()}`);
-  process.exit(1);
-}
+// 📥 Récupérer et sauvegarder le fichier d'analyse IA
+const parsed = await response.json();
+const outPath = path.join(__dirname, `../data/cot-summary/${today}.json`);
+fs.writeFileSync(outPath, JSON.stringify(parsed, null, 2), "utf-8");
 
-console.log("✅ Données envoyées à Base44 avec succès !");
+console.log(`✅ Analyse IA sauvegardée dans: ${outPath}`);
