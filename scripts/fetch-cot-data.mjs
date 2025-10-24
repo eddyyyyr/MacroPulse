@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
-import { parseCot } from "./parseCot.js";
+import pkg from "./parseCot.js"; // <-- FIX ICI
+const { parseCot } = pkg;
 
-const output = parseCot(); // tu peux adapter si tu veux des params
+const output = parseCot();
 
 const filePath = path.join("data", "cot", `${new Date().toISOString().slice(0, 10)}.json`);
 fs.mkdirSync(path.dirname(filePath), { recursive: true });
