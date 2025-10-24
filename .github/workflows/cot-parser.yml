@@ -6,7 +6,6 @@ on:
 jobs:
   parse:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -14,18 +13,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: '20'
 
       - name: Run COT parser
-        run: node fetch-cot-data.mjs
+        run: node scripts/fetch-cot-data.mjs
 
       - name: Commit updated COT data
         run: |
-          git config --global user.name "MacroPulse Bot"
-          git config --global user.email "bot@macropulse.io"
-          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/edyyyyr/MacroPulse.git
-          git add .
+          git config --global user.name 'MacroPulse Bot'
+          git config --global user.email 'bot@macropulse.ai'
+          git add data/cot
           git commit -m "Weekly update COT data" || echo "Nothing to commit"
           git push
         env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
